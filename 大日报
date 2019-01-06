@@ -1,0 +1,32 @@
+Sub 封账机构名称()
+lastrow = ActiveSheet.UsedRange.Rows.Count
+For i = lastrow To 2 Step -1
+    If Range("G" & i) = "江阴" Or _
+       Range("G" & i) = "宜兴" Then
+       Range("F" & i) = Range("G" & i)
+    
+    ElseIf Range("F" & i) = "北京第二分公司" Or _
+           Range("F" & i) = "北京第三分公司" Or _
+           Range("F" & i) = "北京第四分公司" Or _
+           Range("F" & i) = "厦门第一分公司" Or _
+           Range("F" & i) = "厦门第二分公司" Then
+           Range("F" & i) = "筹建机构" & ChrW(&H2160)    'chrw(&H2160) 是罗马数字1
+
+    ElseIf Range("H" & i) = "虚拟1-筹建" Then
+           Range("F" & i) = "宁波第二分公司"
+
+    ElseIf Range("F" & i) = "苏州" Then
+           Range("F" & i) = "苏州一分"
+    End If    '修改机构名称
+           
+    If Range("U" & i) Like "*陆浦惠越投资专项私募基金*" Or _
+       Range("U" & i) Like "*陆浦长盈私募基金*" Or _
+       Range("U" & i) Like "*世茂*" Then
+       Range("Q" & i) = "地产基金"
+           
+    ElseIf Range("U" & i) Like "*Rivpearl*" Or _
+           Range("U" & i) Like "*EJF*" Then
+           Range("Q" & i) = "OF"
+    End If
+Next
+End Sub
