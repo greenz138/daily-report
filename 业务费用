@@ -1,0 +1,65 @@
+Sub 业务费用()
+Application.ScreenUpdating = False
+lastrow_rules = Worksheets(1).UsedRange.Rows.Count
+'# of rows in rules sheet
+rules = Worksheets(1).Range("A1:AQ" & lastrow_rules)
+'read & save rules/worksheets(1):规则基础表
+lastrow = Worksheets(6).UsedRange.Rows.Count
+'Worksheets(6): 结算明细表
+lastcol = Worksheets(8).Cells(1, 1).End(xlToRight).Column
+'Worksheets(8): 人力表，人力表第一行最后一列数字
+Worksheets(6).Activate
+For i = 2 To lastrow
+    For t = 2 To lastrow_rules
+        If rules(t, 5) Like "*" & Cells(i, 5).Value & "*" And Cells(i, 7).Value = rules(t, 12) And Cells(i, 9).Value = rules(t, 13) Then
+        '要求规则表中的子产品名称rules(t,5)中包含结算明细表中的名称cells(i,5)，并且其成立日期、清算时间相等
+            For Each Rng In Worksheets(8).Range(Worksheets(8).Cells(1, 1), Worksheets(8).Cells(1, lastcol))
+            'Worksheets(8): 人力表, 找出业务费用对应规则所在列数
+                If Rng = rules(t, 7) Then
+                '规则表中的业务费率字段(rules(t,7))=人力表中的业务费率
+                    a = Rng.Column
+                End If
+            Next
+            m = rules(t, 11)
+            '支付次数
+            For k = 1 To m
+                Cells(i, k + 10) = Application.VLookup(Cells(i, 50), Worksheets("人力表").Range("A:AN"), a, 0)
+                '用vlookup匹配对应产品对应FA的对应业务费用费率
+            Next
+            
+            Cells(i, 36).Formula = "=if(CW" & i & "=""年终奖"",0,H" & i & "*X" & i & "*10000*基础表!AC" & t & "/365)"
+            '第一次业务费用（AJ列）; H列为认购金额; X列为业务费用率实际第一次;（基础表！AC&t）：第一次时间间隔
+            
+            Cells(i, 48).Formula = "=if(CW" & i & "=""年终奖"",H" & i & "*X" & i & "*10000*基础表!AC" & t & "/365,0)"
+            '年终奖下发业务费用（AV列）
+            
+'            If Cells(i, 101) = "年终奖" Then
+'                Cells(i, 36) = 0
+'                Cells(i, 48) = Cells(i, 8) * Cells(i, 24) * 10000 * rules(t, 29) / 365
+'            Else
+'                Cells(i, 36) = Cells(i, 8) * Cells(i, 24) * 10000 * rules(t, 29) / 365
+'                Cells(i, 48) = 0
+'            End If
+            
+            If m > 1 Then
+            '如果支付次数大于1次
+                For k = 1 To m - 1
+                    Cells(i, 36 + k).Formula = "=" & Cells(i, 8).Address(0, 0) & "*" & Cells(i, 24 + k).Address(0, 0) & "*10000*基础表!" & Cells(t, 29 + k).Address(0, 0) & "/365"
+                    '第二...最后一次业务费用; 用address方法可以找到单元格对应位置; cells(i,8)：认购金额; cells(i,24+k)：业务费用率实际; 基础表!cells(t,29+k)：第二...最后一次时间间隔
+                    
+                    'Cells(i, 36 + k) = Cells(i, 8) * Cells(i, 24 + k) * 10000 * rules(t, 29 + k) / 365
+                Next
+            End If
+        'Exit For
+        End If
+    Next
+Next
+Application.ScreenUpdating = True
+End Sub
+Sub 计算宏运行所用时间()
+Dim tt As Single
+tt = Timer
+业务费用
+MsgBox "ok,用时" & Timer - tt & "秒!"
+End Sub
+
